@@ -9,14 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiSpellRouteImport } from './routes/api/spell'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiSpellRoute = ApiSpellRouteImport.update({
   id: '/api/spell',
   path: '/api/spell',
@@ -24,40 +18,29 @@ const ApiSpellRoute = ApiSpellRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
   '/api/spell': typeof ApiSpellRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/api/spell': typeof ApiSpellRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
   '/api/spell': typeof ApiSpellRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/spell'
+  fullPaths: '/api/spell'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/spell'
-  id: '__root__' | '/' | '/api/spell'
+  to: '/api/spell'
+  id: '__root__' | '/api/spell'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
   ApiSpellRoute: typeof ApiSpellRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/spell': {
       id: '/api/spell'
       path: '/api/spell'
@@ -69,7 +52,6 @@ declare module '@tanstack/react-router' {
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
   ApiSpellRoute: ApiSpellRoute,
 }
 export const routeTree = rootRouteImport
