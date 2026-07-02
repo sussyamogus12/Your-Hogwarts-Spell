@@ -39,26 +39,66 @@ const MODE_META: Record<
   },
 };
 
+function stripLabel(s: string): string {
+  return s
+    .replace(
+      /^\s*(заклинание|название|spell|name|описание|description)\s*[:—–-]?\s*/i,
+      "",
+    )
+    .replace(/^[*#"«»\s]+|[*#"«»\s]+$/g, "")
+    .trim();
+}
+
 function parseSpell(raw: string): SpellResult {
   const lines = raw
     .split("\n")
     .map((l) => l.trim())
     .filter(Boolean);
 
-  if (lines.length === 0) return { name: "Заклинание", description: raw };
+  let name = "";
+  let description = "";
 
-  let name = lines[0];
-  let rest = lines.slice(1).join(" ");
+  if (lines.length >= 2) {
+    name = stripLabel(lines[0]);
+    description = stripLabel(lines.slice(1).join(" "));
+  } else {
+    let one = (lines[0] ?? raw).trim();
+    one = one.replace(/^\s*(заклинание|название|spell|name)\s*[:—–-]\s*/i, "");
 
-  // If the model put "Name — description" on one line, split on the dash.
-  if (!rest && /[—–-]/.test(name)) {
-    const idx = name.search(/[—–-]/);
-    rest = name.slice(idx + 1).trim();
-    name = name.slice(0, idx).trim();
+    const dash = one.search(/\s[—–-]\s/);
+    const period = one.indexOf(". ");
+    let idx = -1;
+    let isDash = false;
+    if (dash >= 0) {
+      idx = dash;
+      isDash = true;
+    } else if (period >= 0) {
+      idx = period;
+    }
+
+    if (idx >= 0) {
+      name = one.slice(0, idx).trim();
+      description = one
+        .slice(isDash ? idx : idx + 1)
+        .replace(/^\s*[—–-]\s*/, "")
+        .trim();
+    } else {
+      name = one;
+    }
+    name = stripLabel(name);
+    description = stripLabel(description);
   }
 
-  name = name.replace(/^[*#\s"«»]+|[*#\s"«»:.]+$/g, "");
-  return { name: name || "Заклинание", description: rest || raw };
+  // If the "name" is actually a long sentence, it's the whole answer.
+  if (name.length > 60 && !description) {
+    description = name;
+    name = "Твоё заклинание";
+  }
+
+  return {
+    name: name || "Заклинание",
+    description: description || raw.trim(),
+  };
 }
 
 function Index() {
