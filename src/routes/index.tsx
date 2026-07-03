@@ -111,19 +111,6 @@ function Index() {
 
   const meta = MODE_META[mode];
 
-  const sparkles = useMemo(
-    () =>
-      Array.from({ length: 22 }, (_, i) => ({
-        id: i,
-        left: Math.random() * 100,
-        top: Math.random() * 100,
-        size: 2 + Math.random() * 4,
-        delay: Math.random() * 5,
-        duration: 4 + Math.random() * 5,
-      })),
-    [],
-  );
-
   async function castSpell() {
     const text = description.trim();
     if (text.length < 3) {
