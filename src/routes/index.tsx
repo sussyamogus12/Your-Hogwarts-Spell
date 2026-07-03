@@ -262,6 +262,19 @@ function Index() {
               <p className="mx-auto max-w-lg font-serif text-lg leading-relaxed text-foreground/90">
                 {result.description}
               </p>
+              <Button
+                asChild
+                variant="outline"
+                className="mt-6 border-gold/40 font-display tracking-wide"
+              >
+                <Link
+                  to="/library"
+                  search={{ name: result.name, effect: result.description }}
+                >
+                  <BookOpen className="h-4 w-4" />
+                  Опубликовать в библиотеку
+                </Link>
+              </Button>
             </motion.div>
           )}
         </AnimatePresence>
@@ -270,6 +283,7 @@ function Index() {
           Магия работает на волшебстве ИИ ✦ мир «Гарри Поттера»
         </footer>
       </main>
+      </div>
     </div>
   );
 }
