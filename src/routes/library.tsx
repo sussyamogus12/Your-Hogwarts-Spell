@@ -26,6 +26,10 @@ const spellsQuery = queryOptions({
 });
 
 export const Route = createFileRoute("/library")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    name: typeof search.name === "string" ? search.name : undefined,
+    effect: typeof search.effect === "string" ? search.effect : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Библиотека заклинаний — Хогвартс" },
@@ -53,7 +57,7 @@ function LibraryPage() {
   const { data: spells } = useSuspenseQuery(spellsQuery);
   const { user } = useAuth();
 
-  const search = Route.useSearch() as { name?: string; effect?: string };
+  const search = Route.useSearch();
   const [formOpen, setFormOpen] = useState(Boolean(search.name || search.effect));
 
   return (
