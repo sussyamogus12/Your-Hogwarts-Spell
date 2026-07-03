@@ -99,6 +99,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Твоё заклинание в Хогвартс" },
+      { name: "description", content: "Ты когда-нибудь задумывался, какое самое подходящее для тебя заклинание? На этом сайте ты можешь это узнать!" },
+      { property: "og:description", content: "Ты когда-нибудь задумывался, какое самое подходящее для тебя заклинание? На этом сайте ты можешь это узнать!" },
+      { name: "twitter:description", content: "Ты когда-нибудь задумывался, какое самое подходящее для тебя заклинание? На этом сайте ты можешь это узнать!" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b24ab337-101e-4c43-98d9-3fcbd373f72f/id-preview-f9910946--71840311-2f84-4050-a2ac-994396103d4b.lovable.app-1783006424816.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b24ab337-101e-4c43-98d9-3fcbd373f72f/id-preview-f9910946--71840311-2f84-4050-a2ac-994396103d4b.lovable.app-1783006424816.png" },
     ],
     links: [
       {
