@@ -60,7 +60,7 @@ export function SiteHeader() {
   );
 }
 
-function NavLink({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {
+function NavLink({ to, icon, label }: { to: "/" | "/library"; icon: React.ReactNode; label: string }) {
   return (
     <Link
       to={to}
