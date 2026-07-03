@@ -1,12 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Sparkles, Wand2, ScrollText, Loader2 } from "lucide-react";
+import { Sparkles, Wand2, ScrollText, Loader2, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { StarfieldBackground } from "@/components/StarfieldBackground";
+import { SiteHeader } from "@/components/SiteHeader";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -109,19 +111,6 @@ function Index() {
 
   const meta = MODE_META[mode];
 
-  const sparkles = useMemo(
-    () =>
-      Array.from({ length: 22 }, (_, i) => ({
-        id: i,
-        left: Math.random() * 100,
-        top: Math.random() * 100,
-        size: 2 + Math.random() * 4,
-        delay: Math.random() * 5,
-        duration: 4 + Math.random() * 5,
-      })),
-    [],
-  );
-
   async function castSpell() {
     const text = description.trim();
     if (text.length < 3) {
@@ -158,25 +147,10 @@ function Index() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      {/* Floating sparkles */}
-      <div className="pointer-events-none absolute inset-0">
-        {sparkles.map((s) => (
-          <span
-            key={s.id}
-            className="absolute rounded-full bg-gold"
-            style={{
-              left: `${s.left}%`,
-              top: `${s.top}%`,
-              width: s.size,
-              height: s.size,
-              animation: `float-sparkle ${s.duration}s ease-in-out ${s.delay}s infinite`,
-              boxShadow: "0 0 8px 1px var(--gold)",
-            }}
-          />
-        ))}
-      </div>
-
-      <main className="relative z-10 mx-auto flex min-h-screen w-full max-w-2xl flex-col items-center px-5 py-14 sm:py-20">
+      <StarfieldBackground count={44} />
+      <div className="relative z-10">
+        <SiteHeader />
+      <main className="mx-auto flex w-full max-w-2xl flex-col items-center px-5 pb-16 pt-6 sm:pt-10">
         <motion.header
           initial={{ opacity: 0, y: -18 }}
           animate={{ opacity: 1, y: 0 }}
@@ -288,6 +262,19 @@ function Index() {
               <p className="mx-auto max-w-lg font-serif text-lg leading-relaxed text-foreground/90">
                 {result.description}
               </p>
+              <Button
+                asChild
+                variant="outline"
+                className="mt-6 border-gold/40 font-display tracking-wide"
+              >
+                <Link
+                  to="/library"
+                  search={{ name: result.name, effect: result.description }}
+                >
+                  <BookOpen className="h-4 w-4" />
+                  Опубликовать в библиотеку
+                </Link>
+              </Button>
             </motion.div>
           )}
         </AnimatePresence>
@@ -296,6 +283,7 @@ function Index() {
           Магия работает на волшебстве ИИ ✦ мир «Гарри Поттера»
         </footer>
       </main>
+      </div>
     </div>
   );
 }
