@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 
 type Star = {
   id: number;
@@ -10,11 +10,11 @@ type Star = {
   big: boolean;
 };
 
-function makeStars(count: number, seedOffset: number): Star[] {
+function makeStars(count: number): Star[] {
   return Array.from({ length: count }, (_, i) => {
     const big = i % 7 === 0;
     return {
-      id: i + seedOffset,
+      id: i,
       left: Math.random() * 100,
       top: Math.random() * 100,
       size: big ? 3 + Math.random() * 4 : 1.5 + Math.random() * 2.5,
@@ -25,9 +25,13 @@ function makeStars(count: number, seedOffset: number): Star[] {
   });
 }
 
-/** Animated twinkling / drifting golden stars used behind every page. */
+/** Animated twinkling / drifting golden stars behind every page. Client-only to avoid SSR hydration mismatch. */
 export function StarfieldBackground({ count = 46 }: { count?: number }) {
-  const stars = useMemo(() => makeStars(count, 0), [count]);
+  const [stars, setStars] = useState<Star[]>([]);
+
+  useEffect(() => {
+    setStars(makeStars(count));
+  }, [count]);
 
   return (
     <div
