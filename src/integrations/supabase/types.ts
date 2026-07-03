@@ -14,7 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string
+          id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      spells: {
+        Row: {
+          author_name: string
+          created_at: string
+          effect: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          author_name: string
+          created_at?: string
+          effect: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          author_name?: string
+          created_at?: string
+          effect?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
