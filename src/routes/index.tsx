@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles, Wand2, ScrollText, Loader2, BookOpen } from "lucide-react";
 import { toast } from "sonner";
@@ -147,25 +147,10 @@ function Index() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      {/* Floating sparkles */}
-      <div className="pointer-events-none absolute inset-0">
-        {sparkles.map((s) => (
-          <span
-            key={s.id}
-            className="absolute rounded-full bg-gold"
-            style={{
-              left: `${s.left}%`,
-              top: `${s.top}%`,
-              width: s.size,
-              height: s.size,
-              animation: `float-sparkle ${s.duration}s ease-in-out ${s.delay}s infinite`,
-              boxShadow: "0 0 8px 1px var(--gold)",
-            }}
-          />
-        ))}
-      </div>
-
-      <main className="relative z-10 mx-auto flex min-h-screen w-full max-w-2xl flex-col items-center px-5 py-14 sm:py-20">
+      <StarfieldBackground count={44} />
+      <div className="relative z-10">
+        <SiteHeader />
+      <main className="mx-auto flex w-full max-w-2xl flex-col items-center px-5 pb-16 pt-6 sm:pt-10">
         <motion.header
           initial={{ opacity: 0, y: -18 }}
           animate={{ opacity: 1, y: 0 }}
