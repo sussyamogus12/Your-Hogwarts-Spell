@@ -16,10 +16,10 @@ export const Route = createFileRoute("/api/spell")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const apiKey = process.env.OPENAI_API_KEY;
+        const apiKey = process.env.DEEPSEEK_API_KEY;
         if (!apiKey) {
           return Response.json(
-            { error: "Ключ OpenAI не настроен." },
+            { error: "Ключ DeepSeek не настроен." },
             { status: 500 },
           );
         }
@@ -43,16 +43,16 @@ export const Route = createFileRoute("/api/spell")({
         const systemPrompt =
           mode === "create" ? CREATE_SYSTEM_PROMPT : MATCH_SYSTEM_PROMPT;
 
-        let openaiRes: Response;
+        let aiRes: Response;
         try {
-          openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+          aiRes = await fetch("https://api.deepseek.com/chat/completions", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${apiKey}`,
             },
             body: JSON.stringify({
-              model: "gpt-4o-mini",
+              model: "deepseek-chat",
               temperature: 0.9,
               messages: [
                 { role: "system", content: systemPrompt },
@@ -67,16 +67,16 @@ export const Route = createFileRoute("/api/spell")({
           );
         }
 
-        if (!openaiRes.ok) {
-          if (openaiRes.status === 429) {
+        if (!aiRes.ok) {
+          if (aiRes.status === 429) {
             return Response.json(
               { error: "Слишком много заклинаний сразу. Подождите немного." },
               { status: 429 },
             );
           }
-          if (openaiRes.status === 401) {
+          if (aiRes.status === 401) {
             return Response.json(
-              { error: "Ключ OpenAI недействителен." },
+              { error: "Ключ DeepSeek недействителен." },
               { status: 500 },
             );
           }
@@ -86,7 +86,7 @@ export const Route = createFileRoute("/api/spell")({
           );
         }
 
-        const data = (await openaiRes.json()) as {
+        const data = (await aiRes.json()) as {
           choices?: { message?: { content?: string } }[];
         };
         const content = data.choices?.[0]?.message?.content?.trim();
