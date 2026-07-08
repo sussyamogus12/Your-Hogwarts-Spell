@@ -32,6 +32,67 @@ export type Database = {
         }
         Relationships: []
       }
+      spell_favorites: {
+        Row: {
+          created_at: string
+          id: string
+          spell_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          spell_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          spell_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spell_favorites_spell_id_fkey"
+            columns: ["spell_id"]
+            isOneToOne: false
+            referencedRelation: "spells"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      spell_votes: {
+        Row: {
+          created_at: string
+          id: string
+          spell_id: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          spell_id: string
+          user_id: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          spell_id?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spell_votes_spell_id_fkey"
+            columns: ["spell_id"]
+            isOneToOne: false
+            referencedRelation: "spells"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       spells: {
         Row: {
           author_name: string
