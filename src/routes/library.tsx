@@ -1,15 +1,38 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { queryOptions, useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import {
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  useSuspenseQuery,
+} from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpen, Loader2, LogIn, Plus, ScrollText, Sparkles, Trash2, Wand2 } from "lucide-react";
+import {
+  BookOpen,
+  Loader2,
+  LogIn,
+  Plus,
+  ScrollText,
+  Search,
+  Sparkles,
+  Star,
+  ThumbsDown,
+  ThumbsUp,
+  Trash2,
+  Wand2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import {
   createSpell,
   deleteSpell,
+  getMyReactions,
   listSpells,
+  toggleFavorite,
+  voteSpell,
+  type MyReactions,
   type SpellRow,
 } from "@/lib/spells.functions";
 import { useAuth } from "@/lib/use-auth";
@@ -17,6 +40,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import { StarfieldBackground } from "@/components/StarfieldBackground";
 import { SiteHeader } from "@/components/SiteHeader";
 
@@ -32,11 +56,11 @@ export const Route = createFileRoute("/library")({
   }),
   head: () => ({
     meta: [
-      { title: "Библиотека заклинаний — Хогвартс" },
+      { title: "Библиотека заклinаний — Хогвартс".replace("заклinаний", "заклинаний") },
       {
         name: "description",
         content:
-          "Общая библиотека заклинаний: смотрите чужие волшебные формулы и их действие, выкладывайте свои.",
+          "Общая библиотека заклинаний: смотрите чужие волшебные формулы и их действие, ставьте оценки, добавляйте в избранное и выкладывайте свои.",
       },
       { property: "og:title", content: "Библиотека заклинаний — Хогвартс" },
       {
@@ -57,8 +81,29 @@ function LibraryPage() {
   const { data: spells } = useSuspenseQuery(spellsQuery);
   const { user } = useAuth();
 
+  const reactionsQuery = useQuery({
+    queryKey: ["my-reactions", user?.id],
+    queryFn: () => getMyReactions(),
+    enabled: Boolean(user),
+  });
+  const reactions: MyReactions = reactionsQuery.data ?? { votes: {}, favorites: [] };
+  const favoriteSet = useMemo(() => new Set(reactions.favorites), [reactions.favorites]);
+
   const search = Route.useSearch();
   const [formOpen, setFormOpen] = useState(Boolean(search.name || search.effect));
+  const [query, setQuery] = useState("");
+  const [onlyFavorites, setOnlyFavorites] = useState(false);
+
+  const visibleSpells = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return spells.filter((s) => {
+      if (onlyFavorites && !favoriteSet.has(s.id)) return false;
+      if (!q) return true;
+      return (
+        s.name.toLowerCase().includes(q) || s.effect.toLowerCase().includes(q)
+      );
+    });
+  }, [spells, query, onlyFavorites, favoriteSet]);
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -108,16 +153,73 @@ function LibraryPage() {
             )}
           </div>
 
-          <div className="mt-10">
-            {spells.length === 0 ? (
+          {/* Поиск и фильтры */}
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Поиск по названию или описанию…"
+                className="border-gold/30 bg-card/50 pl-9 font-serif backdrop-blur-sm"
+              />
+            </div>
+            <div className="flex rounded-lg border border-gold/25 bg-card/40 p-1 backdrop-blur-sm">
+              <button
+                type="button"
+                onClick={() => setOnlyFavorites(false)}
+                className={cn(
+                  "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                  !onlyFavorites
+                    ? "bg-primary text-gold-foreground"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                Все
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!user) {
+                    toast.error("Войдите, чтобы видеть избранное.");
+                    return;
+                  }
+                  setOnlyFavorites(true);
+                }}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                  onlyFavorites
+                    ? "bg-primary text-gold-foreground"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <Star className="h-3.5 w-3.5" />
+                Избранное
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-8">
+            {visibleSpells.length === 0 ? (
               <div className="rounded-xl border border-gold/25 bg-card/40 p-10 text-center text-muted-foreground backdrop-blur-sm">
-                Пока пусто. Стань первым, кто добавит заклинание!
+                {spells.length === 0
+                  ? "Пока пусто. Стань первым, кто добавит заклинание!"
+                  : onlyFavorites
+                    ? "В избранном пока ничего нет."
+                    : "Ничего не найдено по вашему запросу."}
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
                 <AnimatePresence>
-                  {spells.map((spell) => (
-                    <SpellCard key={spell.id} spell={spell} isOwner={user?.id === spell.user_id} />
+                  {visibleSpells.map((spell) => (
+                    <SpellCard
+                      key={spell.id}
+                      spell={spell}
+                      isOwner={user?.id === spell.user_id}
+                      signedIn={Boolean(user)}
+                      myVote={reactions.votes[spell.id] ?? 0}
+                      favorited={favoriteSet.has(spell.id)}
+                    />
                   ))}
                 </AnimatePresence>
               </div>
@@ -225,18 +327,57 @@ function AddSpellSection({
   );
 }
 
-function SpellCard({ spell, isOwner }: { spell: SpellRow; isOwner: boolean }) {
+function SpellCard({
+  spell,
+  isOwner,
+  signedIn,
+  myVote,
+  favorited,
+}: {
+  spell: SpellRow;
+  isOwner: boolean;
+  signedIn: boolean;
+  myVote: 1 | -1 | 0;
+  favorited: boolean;
+}) {
   const queryClient = useQueryClient();
   const deleteFn = useServerFn(deleteSpell);
+  const voteFn = useServerFn(voteSpell);
+  const favoriteFn = useServerFn(toggleFavorite);
+
+  function invalidate() {
+    queryClient.invalidateQueries({ queryKey: ["spells"] });
+    queryClient.invalidateQueries({ queryKey: ["my-reactions"] });
+  }
 
   const del = useMutation({
     mutationFn: () => deleteFn({ data: { id: spell.id } }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["spells"] });
+      invalidate();
       toast.success("Заклинание удалено.");
     },
     onError: () => toast.error("Не удалось удалить."),
   });
+
+  const vote = useMutation({
+    mutationFn: (value: 1 | -1) => voteFn({ data: { spellId: spell.id, value } }),
+    onSuccess: invalidate,
+    onError: () => toast.error("Не удалось оценить."),
+  });
+
+  const fav = useMutation({
+    mutationFn: () => favoriteFn({ data: { spellId: spell.id } }),
+    onSuccess: invalidate,
+    onError: () => toast.error("Не удалось изменить избранное."),
+  });
+
+  function requireAuth(): boolean {
+    if (!signedIn) {
+      toast.error("Войдите, чтобы оценивать заклинания.");
+      return false;
+    }
+    return true;
+  }
 
   return (
     <motion.article
@@ -252,24 +393,73 @@ function SpellCard({ spell, isOwner }: { spell: SpellRow; isOwner: boolean }) {
           <ScrollText className="h-4 w-4" />
           <h2 className="font-display text-xl text-glow-gold">{spell.name}</h2>
         </div>
-        {isOwner && (
+        <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => del.mutate()}
-            disabled={del.isPending}
-            className="text-muted-foreground/70 transition-colors hover:text-destructive"
-            aria-label="Удалить заклинание"
+            onClick={() => requireAuth() && fav.mutate()}
+            disabled={fav.isPending}
+            className={cn(
+              "transition-colors",
+              favorited
+                ? "text-primary"
+                : "text-muted-foreground/70 hover:text-primary",
+            )}
+            aria-label={favorited ? "Убрать из избранного" : "В избранное"}
           >
-            <Trash2 className="h-4 w-4" />
+            <Star className={cn("h-4 w-4", favorited && "fill-current")} />
           </button>
-        )}
+          {isOwner && (
+            <button
+              type="button"
+              onClick={() => del.mutate()}
+              disabled={del.isPending}
+              className="text-muted-foreground/70 transition-colors hover:text-destructive"
+              aria-label="Удалить заклинание"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </div>
       <p className="flex-1 font-serif text-base leading-relaxed text-foreground/90">
         {spell.effect}
       </p>
-      <div className="mt-4 flex items-center gap-1.5 border-t border-gold/15 pt-3 text-xs text-muted-foreground">
-        <Sparkles className="h-3 w-3 text-primary" />
-        Автор: <span className="text-foreground/80">{spell.author_name}</span>
+
+      <div className="mt-4 flex items-center gap-3 border-t border-gold/15 pt-3">
+        <button
+          type="button"
+          onClick={() => requireAuth() && vote.mutate(1)}
+          disabled={vote.isPending}
+          className={cn(
+            "inline-flex items-center gap-1 text-sm transition-colors",
+            myVote === 1
+              ? "text-primary"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+          aria-label="Нравится"
+        >
+          <ThumbsUp className={cn("h-4 w-4", myVote === 1 && "fill-current")} />
+          {spell.likes}
+        </button>
+        <button
+          type="button"
+          onClick={() => requireAuth() && vote.mutate(-1)}
+          disabled={vote.isPending}
+          className={cn(
+            "inline-flex items-center gap-1 text-sm transition-colors",
+            myVote === -1
+              ? "text-destructive"
+              : "text-muted-foreground hover:text-foreground",
+          )}
+          aria-label="Не нравится"
+        >
+          <ThumbsDown className={cn("h-4 w-4", myVote === -1 && "fill-current")} />
+          {spell.dislikes}
+        </button>
+        <span className="ml-auto inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Sparkles className="h-3 w-3 text-primary" />
+          {spell.author_name}
+        </span>
       </div>
     </motion.article>
   );
