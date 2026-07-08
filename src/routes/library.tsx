@@ -56,7 +56,7 @@ export const Route = createFileRoute("/library")({
   }),
   head: () => ({
     meta: [
-      { title: "Библиотека заклinаний — Хогвартс".replace("заклinаний", "заклинаний") },
+      { title: "Библиотека заклинаний — Хогвартс" },
       {
         name: "description",
         content:
