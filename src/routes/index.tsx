@@ -17,7 +17,8 @@ export const Route = createFileRoute("/")({
 type Mode = "match" | "create";
 
 type SpellResult = {
-  name: string;
+  latinName: string;
+  russianName: string;
   description: string;
 };
 
