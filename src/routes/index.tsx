@@ -52,55 +52,76 @@ function stripLabel(s: string): string {
     .trim();
 }
 
+function limitWords(text: string, maxWords: number): string {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  if (words.length <= maxWords) return text.trim();
+  return words.slice(0, maxWords).join(" ") + "…";
+}
+
+function parseSpellName(line: string): { latinName: string; russianName: string } {
+  const cleaned = stripLabel(line);
+
+  // Match "Latin (Russian)" with various bracket styles.
+  const match = cleaned.match(/^(.+?)\s*[(\[\{]\s*(.+?)\s*[)\]\}]$/);
+  if (match) {
+    return {
+      latinName: match[1].trim(),
+      russianName: match[2].trim(),
+    };
+  }
+
+  // If no brackets, treat the whole line as Latin and try to detect
+  // a trailing Russian word/phrase separated by common delimiters.
+  const splitMatch = cleaned.match(/^(.+?)\s*[—–-]\s+(.+)$/);
+  if (splitMatch) {
+    return {
+      latinName: splitMatch[1].trim(),
+      russianName: splitMatch[2].trim(),
+    };
+  }
+
+  return { latinName: cleaned, russianName: "" };
+}
+
 function parseSpell(raw: string): SpellResult {
   const lines = raw
     .split("\n")
     .map((l) => l.trim())
     .filter(Boolean);
 
-  let name = "";
-  let description = "";
-
   if (lines.length >= 2) {
-    name = stripLabel(lines[0]);
-    description = stripLabel(lines.slice(1).join(" "));
-  } else {
-    let one = (lines[0] ?? raw).trim();
-    one = one.replace(/^\s*(заклинание|название|spell|name)\s*[:—–-]\s*/i, "");
+    const { latinName, russianName } = parseSpellName(lines[0]);
+    const description = limitWords(stripLabel(lines.slice(1).join(" ")), 40);
+    return {
+      latinName: latinName || "Заклинание",
+      russianName,
+      description,
+    };
+  }
 
-    const dash = one.search(/\s[—–-]\s/);
-    const period = one.indexOf(". ");
-    let idx = -1;
-    let isDash = false;
-    if (dash >= 0) {
-      idx = dash;
-      isDash = true;
-    } else if (period >= 0) {
-      idx = period;
-    }
+  // Single-line fallback.
+  const text = (lines[0] ?? raw).trim();
+  const { latinName, russianName } = parseSpellName(text);
+  let description = stripLabel(text);
 
-    if (idx >= 0) {
-      name = one.slice(0, idx).trim();
-      description = one
-        .slice(isDash ? idx : idx + 1)
-        .replace(/^\s*[—–-]\s*/, "")
-        .trim();
-    } else {
-      name = one;
-    }
-    name = stripLabel(name);
-    description = stripLabel(description);
+  // If the name consumed the whole string, leave description empty-ish.
+  if (description === latinName || description === `${latinName} (${russianName})`) {
+    description = "";
   }
 
   // If the "name" is actually a long sentence, it's the whole answer.
-  if (name.length > 60 && !description) {
-    description = name;
-    name = "Твоё заклинание";
+  if (latinName.length > 60 && !russianName && !description) {
+    return {
+      latinName: "Твоё заклинание",
+      russianName: "",
+      description: limitWords(latinName, 40),
+    };
   }
 
   return {
-    name: name || "Заклинание",
-    description: description || raw.trim(),
+    latinName: latinName || "Заклинание",
+    russianName,
+    description: limitWords(description, 40) || raw.trim(),
   };
 }
 
