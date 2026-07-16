@@ -48,6 +48,7 @@ function stripLabel(s: string): string {
       /^\s*(заклинание|название|spell|name|описание|description)\s*[:—–-]?\s*/i,
       "",
     )
+    .replace(/^[,;:\s]+/, "")
     .replace(/^[*#"«»\s]+|[*#"«»\s]+$/g, "")
     .trim();
 }
