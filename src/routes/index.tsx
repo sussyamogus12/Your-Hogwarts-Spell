@@ -277,7 +277,7 @@ function Index() {
         <AnimatePresence mode="wait">
           {result && (
             <motion.div
-              key={result.name + result.description}
+              key={result.latinName + result.russianName + result.description}
               initial={{ opacity: 0, y: 24, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -12 }}
@@ -289,7 +289,9 @@ function Index() {
                 {mode === "create" ? "Новое заклинание" : "Твоё заклинание"}
               </div>
               <h2 className="font-display text-3xl text-primary text-glow-gold sm:text-4xl">
-                {result.name}
+                {result.russianName
+                  ? `${result.latinName} (${result.russianName})`
+                  : result.latinName}
               </h2>
               <div className="mx-auto my-5 h-px w-24 bg-gradient-to-r from-transparent via-gold to-transparent" />
               <p className="mx-auto max-w-lg font-serif text-lg leading-relaxed text-foreground/90">
@@ -302,7 +304,12 @@ function Index() {
               >
                 <Link
                   to="/library"
-                  search={{ name: result.name, effect: result.description }}
+                  search={{
+                    name: result.russianName
+                      ? `${result.latinName} (${result.russianName})`
+                      : result.latinName,
+                    effect: result.description,
+                  }}
                 >
                   <BookOpen className="h-4 w-4" />
                   Опубликовать в библиотеку
