@@ -128,12 +128,12 @@ function Index() {
       });
       const data = (await res.json()) as { result?: string; error?: string };
       if (!res.ok || !data.result) {
-        toast.error(data.error ?? "Магия дала сбой. Попробуйте ещё раз.");
+        toast.error(data.error ?? "Опишите себя подробнее");
         return;
       }
       const parsed = parseSpell(data.result);
       if (!parsed) {
-        toast.error("Магия дала сбой. Попробуйте ещё раз.");
+        toast.error("Опишите себя подробнее");
         return;
       }
       setResult(parsed);
