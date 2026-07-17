@@ -153,12 +153,12 @@ function Index() {
   return (
     <div className="relative min-h-screen overflow-hidden">
       <StarfieldBackground count={44} />
-      {/* Оживающая цветная аура во время колдовства и при появлении результата */}
+      {/* Оживающая цветная аура во время колдовства */}
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-1000 ease-out"
         style={{
-          opacity: loading || result ? 1 : 0,
+          opacity: loading ? 1 : 0,
           background:
             "radial-gradient(ellipse 70% 55% at 50% 18%, color-mix(in oklab, var(--gold) 26%, transparent), transparent 62%), radial-gradient(ellipse 60% 55% at 18% 92%, color-mix(in oklab, var(--emerald) 24%, transparent), transparent 60%), radial-gradient(ellipse 60% 55% at 85% 88%, color-mix(in oklab, var(--burgundy) 26%, transparent), transparent 60%)",
           animation: loading ? "aura-pulse 2.4s ease-in-out infinite" : undefined,
