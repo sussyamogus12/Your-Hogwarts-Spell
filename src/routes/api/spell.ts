@@ -51,7 +51,13 @@ async function callChatModel(
       choices?: { message?: { content?: string } }[];
     };
     const content = data.choices?.[0]?.message?.content?.trim();
-    return content ? { content } : {};
+    if (!content) return {};
+    // Require the expected "Latin (...)" name line to filter out refusals/mush.
+    const hasValidName = content
+      .split("\n")
+      .some((l) => /[A-Za-z][A-Za-z\s'-]{1,}\s*\(.+\)/.test(l));
+    if (!hasValidName) return {};
+    return { content };
   } catch {
     return {};
   }
