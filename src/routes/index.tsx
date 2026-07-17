@@ -84,46 +84,23 @@ function parseSpellName(line: string): { latinName: string; russianName: string 
   return { latinName: cleaned, russianName: "" };
 }
 
-function parseSpell(raw: string): SpellResult {
+const LATIN_NAME_RE = /^[A-Za-z][A-Za-z\s'-]{1,59}$/;
+
+function parseSpell(raw: string): SpellResult | null {
   const lines = raw
     .split("\n")
     .map((l) => l.trim())
     .filter(Boolean);
 
-  if (lines.length >= 2) {
-    const { latinName, russianName } = parseSpellName(lines[0]);
-    const description = limitWords(stripLabel(lines.slice(1).join(" ")), 40);
-    return {
-      latinName: latinName || "Заклинание",
-      russianName,
-      description,
-    };
-  }
+  if (lines.length < 2) return null;
 
-  // Single-line fallback.
-  const text = (lines[0] ?? raw).trim();
-  const { latinName, russianName } = parseSpellName(text);
-  let description = stripLabel(text);
+  const { latinName, russianName } = parseSpellName(lines[0]);
+  const description = limitWords(stripLabel(lines.slice(1).join(" ")), 40);
 
-  // If the name consumed the whole string, leave description empty-ish.
-  if (description === latinName || description === `${latinName} (${russianName})`) {
-    description = "";
-  }
+  if (!latinName || !LATIN_NAME_RE.test(latinName)) return null;
+  if (!description || description === latinName) return null;
 
-  // If the "name" is actually a long sentence, it's the whole answer.
-  if (latinName.length > 60 && !russianName && !description) {
-    return {
-      latinName: "Твоё заклинание",
-      russianName: "",
-      description: limitWords(latinName, 40),
-    };
-  }
-
-  return {
-    latinName: latinName || "Заклинание",
-    russianName,
-    description: limitWords(description, 40) || raw.trim(),
-  };
+  return { latinName, russianName, description };
 }
 
 function Index() {
@@ -154,7 +131,12 @@ function Index() {
         toast.error(data.error ?? "Магия дала сбой. Попробуйте ещё раз.");
         return;
       }
-      setResult(parseSpell(data.result));
+      const parsed = parseSpell(data.result);
+      if (!parsed) {
+        toast.error("Магия дала сбой. Попробуйте ещё раз.");
+        return;
+      }
+      setResult(parsed);
     } catch {
       toast.error("Не удалось связаться с магической сетью.");
     } finally {
